@@ -5,7 +5,7 @@ import { Container } from 'semantic-ui-react';
 import 'semantic-ui-css/semantic.min.css';
 import './App.css';
 
-import MenuBar from './components/MenuBar';
+const MenuBar = lazy(() => import('./components/MenuBar'));
 
 const Home = lazy(() => import('./routes/Home'));
 const Login = lazy(() => import('./routes/Login'));

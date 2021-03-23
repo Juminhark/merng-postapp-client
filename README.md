@@ -66,12 +66,11 @@ import ApolloProvider from './ApolloProvider';
 ReactDOM.render(ApolloProvider, document.getElementById('root'));
 ```
 
-- Request data
-
-## [react-router-dom](https://ko.reactjs.org/docs/code-splitting.html#route-based-code-splitting)
+## [react-router-dom](https://reactrouter.com/web/guides/quick-start)
 
 - React-Router는 3rd party library로 React의 SPA(Single Page Application)구현에 도움
-- Route-based code splitting : 앱에 코드를 목적에 맞게 분할하는데도 도움
+- [Route-based code splitting](<(https://ko.reactjs.org/docs/code-splitting.html#route-based-code-splitting)>)
+  - 앱에 코드를 목적에 맞게 분할하는데도 도움
 
 ```sh
 > yarn add react-router-dom
@@ -182,6 +181,90 @@ const App = () => (
 
 export default App;
 ```
+
+## Request data
+
+```js
+// sample
+import { useQuery, gql } from '@apollo/client';
+
+const EXCHANGE_RATES = gql`
+	query GetExchangeRates {
+		rates(currency: "USD") {
+			currency
+			rate
+		}
+	}
+`;
+
+function ExchangeRates() {
+	const { loading, error, data } = useQuery(EXCHANGE_RATES);
+
+	if (loading) return <p>Loading...</p>;
+	if (error) return <p>Error :(</p>;
+
+	return data.rates.map(({ currency, rate }) => (
+		<div key={currency}>
+			<p>
+				{currency}: {rate}
+			</p>
+		</div>
+	));
+}
+```
+
+```js
+// routes/home.js
+import React from 'react';
+import { useQuery, gql } from '@apollo/client';
+
+const FETCH_POSTS_QUERY = gql`
+	query getPosts {
+		getPosts {
+			id
+			body
+			createdAt
+			username
+			likeCount
+			likes {
+				username
+			}
+			commentCount
+			comments {
+				id
+				username
+				createdAt
+				body
+			}
+		}
+	}
+`;
+
+const Home = () => {
+	const {
+		loading,
+		error,
+		data: { getPosts: posts },
+	} = useQuery(FETCH_POSTS_QUERY);
+
+	if (loading) return <p>Loading...</p>;
+	if (error) return <p>Error :(</p>;
+
+	console.log(posts);
+
+	return (
+		<div>
+			<h1>Home page</h1>
+		</div>
+	);
+};
+
+export default Home;
+```
+
+## Card
+
+## Moment.js
 
 ## error
 

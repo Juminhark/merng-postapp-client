@@ -1,5 +1,5 @@
 {
-	"name": "MERNG-PostApp-client",
+	"name": "merng-postapp-client",
 	"version": "0.1.0",
 	"private": true,
 	"dependencies": {

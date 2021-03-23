@@ -7,7 +7,7 @@
 ## Dependence
 
 - [semantic-UI](https://semantic-ui.com/)
-- [apollographql](https://www.apollographql.com/)
+- [apollo-graphql](https://www.apollographql.com/)
 
 ## Init
 

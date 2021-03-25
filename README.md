@@ -652,6 +652,16 @@ export default MenuBar;
   - [web/api//window/localStorage](https://developer.mozilla.org/ko/docs/Web/API/Window/localStorage)
 - 이미 저장된 user 정보의 만료확인, 만료되지않은 token을 가졌으면 login, register 불필요
 
+### Add Posts
+
+- [networking-authentication](https://www.apollographql.com/docs/react/networking/authentication/)
+
+- [api-link : context link](https://www.apollographql.com/docs/react/api/link/apollo-link-context/)
+
+- [caching - Rerunning queries after a mutation](https://www.apollographql.com/docs/react/caching/advanced-topics/)
+
+- [update cache afer a mutation](https://www.youtube.com/watch?v=lQ7t20gFR14)
+
 # error
 
 ### 1. apollo-link-http

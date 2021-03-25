@@ -266,8 +266,397 @@ export default Home;
 
 ## Moment.js
 
-## error
+## use Mutations
 
-- apollo-link-http
+```js
+// example
+import { gql, useMutation } from '@apollo/client';
+
+const ADD_TODO = gql`
+	mutation AddTodo($type: String!) {
+		addTodo(type: $type) {
+			id
+			type
+		}
+	}
+`;
+
+function AddTodo() {
+	let input;
+	const [addTodo, { data }] = useMutation(ADD_TODO);
+
+	return (
+		<div>
+			<form
+				onSubmit={(e) => {
+					e.preventDefault();
+					addTodo({ variables: { type: input.value } });
+					input.value = '';
+				}}
+			>
+				<input
+					ref={(node) => {
+						input = node;
+					}}
+				/>
+				<button type="submit">Add Todo</button>
+			</form>
+		</div>
+	);
+}
+```
+
+## graphql-error control
+
+- 1. addUser() 실행
+- 2. server validate를 통해 errors를 받아오면 setErrors로 담기
+- 3. error 보여주기
+
+```js
+// routes/Register.js
+const Register = (props) => {
+	const [errors, setErrors] = useState({});
+	const [values, setValues] = useState({
+		username: '',
+		email: '',
+		password: '',
+		confirmPassword: '',
+	});
+
+	const onChange = (e) => {
+		setValues({ ...values, [e.target.name]: e.target.value });
+	};
+
+	const [addUser, { loading }] = useMutation(REGISTER_USER, {
+		update(cache, result) {
+			console.log(result);
+			props.history.push('/');
+		},
+		onError(err) {
+			// 2. server validate를 통해 errors를 받아오면 setErrors
+			console.log(err.graphQLErrors[0].extensions.exception.errors);
+			setErrors(err.graphQLErrors[0].extensions.exception.errors);
+		},
+		variables: values,
+	});
+
+	const onSubmit = (e) => {
+		e.preventDefault();
+		addUser(); // 1. addUser() 실행
+	};
+
+	return (
+		<div className="form-container">
+			<Form onSubmit={onSubmit} noValidate className={loading ? 'loading' : ''}>
+				<h1>Register</h1>
+				<Form.Input
+					label="Username"
+					placeholder="Username.."
+					name="username"
+					type="text"
+					value={values.username}
+					error={errors.username ? true : false}
+					onChange={onChange}
+				/>
+				<Form.Input
+					label="Email"
+					placeholder="Email.."
+					name="email"
+					type="text"
+					value={values.email}
+					error={errors.email ? true : false}
+					onChange={onChange}
+				/>
+				<Form.Input
+					label="Password"
+					placeholder="Password.."
+					name="password"
+					type="password"
+					value={values.password}
+					error={errors.password ? true : false}
+					onChange={onChange}
+				/>
+				<Form.Input
+					label="ConfirmPassword"
+					placeholder="ConfirmPassword.."
+					name="confirmPassword"
+					type="password"
+					value={values.confirmPassword}
+					error={errors.confirmPassword ? true : false}
+					onChange={onChange}
+				/>
+				<Button type="submit" primary>
+					Register
+				</Button>
+			</Form>
+			{Object.keys(errors).length > 0 && (
+				<div className="ui error message">
+					<ul className="list">
+						{Object.values(errors).map((value) => (
+							<li key={value}>{value}</li>
+						))}
+					</ul>
+				</div>
+			)}
+		</div>
+	);
+};
+
+export default Register;
+```
+
+## useHooks
+
+- login, register route에서 반복사용되는 (onChange, onSubmit, values)를 useHooks를 사용
+
+```js
+// register.js(before)
+const [values, setValues] = useState({
+	username: '',
+	email: '',
+	password: '',
+	confirmPassword: '',
+});
+
+const onChange = (e) => {
+	setValues({ ...values, [e.target.name]: e.target.value });
+};
+
+const [addUser, { loading }] = useMutation(REGISTER_USER, {
+	update(cache, result) {
+		console.log(result);
+		props.history.push('/');
+	},
+	onError(err) {
+		console.log(err.graphQLErrors[0].extensions.exception.errors);
+		setErrors(err.graphQLErrors[0].extensions.exception.errors);
+	},
+	variables: values,
+});
+
+const onSubmit = (e) => {
+	e.preventDefault();
+	addUser();
+};
+```
+
+```js
+// hooks.js
+import { useState } from 'react';
+
+export const useForm = (callback, initialState = {}) => {
+	const [values, setValues] = useState(initialState);
+
+	const onChange = (e) => {
+		setValues({ ...values, [e.target.name]: e.target.value });
+	};
+
+	const onSubmit = (e) => {
+		e.preventDefault();
+		callback();
+	};
+
+	return {
+		onChange,
+		onSubmit,
+		values,
+	};
+};
+```
+
+```js
+// register.js
+import { useForm } from '../util/hooks';
+
+const { onChange, onSubmit, values } = useForm(registerUser, {
+	username: '',
+	email: '',
+	password: '',
+	confirmPassword: '',
+});
+
+const [addUser, { loading }] = useMutation(REGISTER_USER, {
+	update(cache, result) {
+		console.log(result);
+		props.history.push('/');
+	},
+	onError(err) {
+		console.log(err.graphQLErrors[0].extensions.exception.errors);
+		setErrors(err.graphQLErrors[0].extensions.exception.errors);
+	},
+	variables: values,
+});
+
+// const registerUser: arrow function으로 선언할경우
+// useForm 안에서 callback함수로 사용될때 선언되지않은 변수로 인식하기때문에
+// function으로 선언함으로써 function hoisting(move declaration from bottom to top)
+
+function registerUser() {
+	addUser();
+}
+```
+
+### AuthContext, AuthProvider using useReducer
+
+```js
+// context/hooks.js
+import React, { useReducer, createContext } from 'react';
+
+const AuthContext = createContext({
+	user: null,
+	login: (userData) => {},
+	logout: () => {},
+});
+
+function authReducer(state, action) {
+	switch (action.type) {
+		case 'LOGIN':
+			return {
+				...state,
+				user: action.payload,
+			};
+		case 'LOGOUT':
+			return {
+				...state,
+				user: null,
+			};
+
+		default:
+			return state;
+	}
+}
+
+function AuthProvider(props) {
+	const [state, dispatch] = useReducer(authReducer, { user: null });
+
+	function login(userData) {
+		dispatch({
+			type: 'LOGIN',
+			payload: userData,
+		});
+	}
+
+	function logout() {
+		dispatch({ type: 'LOGOUT' });
+	}
+
+	return (
+		<AuthContext.Provider
+			value={{ user: state.user, login, logout }}
+			{...props}
+		/>
+	);
+}
+
+export { AuthContext, AuthProvider };
+```
+
+- login, register로 들어온 user정보를 가지고 app의 모든 route에 접근가능하게
+- 최상위에서 context로 정보를 공유하게 설정
+
+```js
+// App.js
+import { AuthProvider } from './context/auth';
+
+const App = () => <AuthProvider>...</AuthProvider>;
+
+export default App;
+```
+
+-login
+
+```js
+// Login.js
+import React, { useState, useContext } from 'react';
+import { AuthContext } from '../context/auth';
+
+const Login = (props) => {
+	const context = useContext(AuthContext);
+
+	const [loginUser, { loading }] = useMutation(LOGIN_USER, {
+		update(_, { data: { login: userData } }) {
+			// TODO : LOGIN정보 CONTEXT로
+			context.login(userData);
+			// TODO : home으로
+			props.history.push('/');
+		},
+		onError(err) {
+			setErrors(err.graphQLErrors[0].extensions.exception.errors);
+		},
+		variables: values,
+	});
+};
+```
+
+- register
+
+```js
+// Register.js
+import React, { useState, useContext } from 'react';
+import { AuthContext } from '../context/auth';
+
+const Register = (props) => {
+  const context = useContext(AuthContext);
+
+
+ const [addUser, { loading }] = useMutation(REGISTER_USER, {
+  update(_, { data: { register: userData }}) {
+  // TODO : REGISTER정보 CONTEXT로
+  context.login(userData);
+ // TODO : home으로
+  props.history.push('/');
+  },
+  onError(err) {
+    setErrors(err.graphQLErrors[0].extensions.exception.errors);
+  },
+  variables: values,
+ });
+
+```
+
+- MenuBar
+
+```js
+import  { useContext } from 'react';
+import { AuthContext } from '../context/auth';
+
+const MenuBar = () => {
+ const { user, logout } = useContext(AuthContext);
+
+ const menuBar = user ? (
+  // user정보가 있을때
+  <Menu pointing secondary size="massive" color="pink">
+   <Menu.Item name={user.username} active as={Link} to="/" />
+
+   <Menu.Menu position="right">
+    <Menu.Item name="logout" onClick={logout} />
+   </Menu.Menu>
+  </Menu>
+ ) : (
+  // user정보가 없을때
+  ...
+ );
+
+ return menuBar;
+};
+
+export default MenuBar;
+```
+
+### [localStorage](https://developer.mozilla.org/ko/docs/Web/API/Window/localStorage)
+
+- web 데이터 저장하는 방법중 server가 아닌 client 영역에서 가능한 방법들이 있다
+- login, register등 사용자의 정보가 페이지에 저장되었을때,
+- 페이지간 이동(uri의 변화)에 저장된 정보를 공유해야하는 상황이 있다.
+  - [JSP 영역(Scope) 객체와 속성 (page, request, session, application)](https://blog.naver.com/javaking75/140181686711)
+  - [web/api//window/localStorage](https://developer.mozilla.org/ko/docs/Web/API/Window/localStorage)
+- 이미 저장된 user 정보의 만료확인, 만료되지않은 token을 가졌으면 login, register 불필요
+
+# error
+
+### 1. apollo-link-http
+
 - Module not found: Can't resolve 'graphql/language/printer' in apollo-client
 - [solution](https://github.com/apollographql/react-apollo/issues/1274)
+
+### [Hoistiong](https://developer.mozilla.org/ko/docs/Glossary/Hoisting)

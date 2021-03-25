@@ -26,7 +26,7 @@ const App = () => (
 						{/* // TODO : user정보가 있으면 제한 */}
 						<AuthRoute exact path="/login" component={Login} />
 						<AuthRoute exact path="/register" component={Register} />
-						<Route exact path="/post/:postId" component={SinglePost} />
+						<Route exact path="/posts/:postId" component={SinglePost} />
 					</Switch>
 				</Suspense>
 			</Container>

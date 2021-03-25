@@ -7,6 +7,7 @@ import moment from 'moment';
 import { AuthContext } from '../context/auth';
 
 import LikeButton from '../components/LikeButton';
+import DeleteButton from '../components/DeleteButton';
 
 const FETCH_POST_QUERY = gql`
 	query($postId: ID!) {
@@ -14,36 +15,41 @@ const FETCH_POST_QUERY = gql`
 			id
 			body
 			createdAt
+			username
 			comments {
 				id
 				body
 				createdAt
 			}
+			commentCount
 			likes {
 				id
 				username
 			}
+			likeCount
 		}
 	}
 `;
 
 const SinglePost = (props) => {
-	const { user } = useContext(AuthContext);
-
 	const postId = props.match.params.postId;
-	console.log(postId);
-
-	const {
-		data: { getPost },
-	} = useQuery(FETCH_POST_QUERY, {
+	const { user } = useContext(AuthContext);
+	const { loading, error, data } = useQuery(FETCH_POST_QUERY, {
 		variables: {
 			postId,
 		},
 	});
 
+	const deletePostCallback = () => {
+		props.history.push('/');
+	};
+
+	if (loading) return <p>Loading...</p>;
+	if (error) return <p>Error.</p>;
+
 	let postMarkup;
 
-	if (!getPost) {
+	if (!data.getPost) {
 		postMarkup = <p>Loading post...</p>;
 	} else {
 		const {
@@ -55,12 +61,12 @@ const SinglePost = (props) => {
 			likes,
 			likeCount,
 			commentCount,
-		} = getPost;
+		} = data.getPost;
 
 		postMarkup = (
 			<Grid>
 				<Grid.Row>
-					<Grid.Column with={2}>
+					<Grid.Column width={2}>
 						<Image
 							src="https://react.semantic-ui.com/images/avatar/large/molly.png"
 							size="small"
@@ -72,7 +78,7 @@ const SinglePost = (props) => {
 							<Card.Content>
 								<Card.Header>{username}</Card.Header>
 								<Card.Meta>{moment(createdAt).fromNow()}</Card.Meta>
-								<Card.Description></Card.Description>
+								<Card.Description>{body}</Card.Description>
 							</Card.Content>
 							<hr />
 							<Card.Content extra>
@@ -89,6 +95,10 @@ const SinglePost = (props) => {
 										{commentCount}
 									</Label>
 								</Button>
+
+								{user && user.username === username && (
+									<DeleteButton postId={id} callback={deletePostCallback} />
+								)}
 							</Card.Content>
 						</Card>
 					</Grid.Column>
@@ -97,7 +107,7 @@ const SinglePost = (props) => {
 		);
 	}
 
-	return <div></div>;
+	return postMarkup;
 };
 
 export default SinglePost;

@@ -13,6 +13,7 @@ const MenuBar = lazy(() => import('./components/MenuBar'));
 const Home = lazy(() => import('./routes/Home'));
 const Login = lazy(() => import('./routes/Login'));
 const Register = lazy(() => import('./routes/Register'));
+const SinglePost = lazy(() => import('./routes/SinglePost'));
 
 const App = () => (
 	<AuthProvider>
@@ -25,6 +26,7 @@ const App = () => (
 						{/* // TODO : user정보가 있으면 제한 */}
 						<AuthRoute exact path="/login" component={Login} />
 						<AuthRoute exact path="/register" component={Register} />
+						<Route exact path="/post/:postId" component={SinglePost} />
 					</Switch>
 				</Suspense>
 			</Container>

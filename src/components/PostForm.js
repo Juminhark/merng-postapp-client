@@ -38,6 +38,7 @@ function PostForm() {
 	const [createPost, { error }] = useMutation(CREATE_POST_MUTATION, {
 		variables: values,
 		update(cache, result) {
+			// TODO : add post from cache
 			const data = cache.readQuery({
 				query: FETCH_POSTS_QUERY,
 			});

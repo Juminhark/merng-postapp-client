@@ -1,5 +1,11 @@
 # MERNG-PostApp-client
 
+- [https://epic-visvesvaraya-98f9dd.netlify.app/](https://epic-visvesvaraya-98f9dd.netlify.app/)
+
+## Deployment
+
+- [netlify](https://www.netlify.com/)
+
 ## Reference
 
 - [Classsed - React GraphQL App series](https://www.youtube.com/playlist?list=PLMhAeHCz8S3_pgb-j51QnCEhXNj5oyl8n)

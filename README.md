@@ -662,6 +662,21 @@ export default MenuBar;
 
 - [update cache afer a mutation](https://www.youtube.com/watch?v=lQ7t20gFR14)
 
+### server connect
+
+```js
+// package.json
+{
+ ... ,
+ "proxy": "https://merng-postapp-server.herokuapp.com/"
+}
+
+// ApolloProvider.js
+const httpLink = new createHttpLink({
+ uri: 'https://merng-postapp-server.herokuapp.com/',
+});
+```
+
 # error
 
 ### 1. apollo-link-http
